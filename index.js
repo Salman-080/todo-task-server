@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Assest Management running");
+  res.send("Task management system running");
 })
 
 app.listen(port, () => {
