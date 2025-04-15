@@ -77,6 +77,8 @@ app.get("/getAllUserInfo/:email", async (req, res) => {
     [email]
   );
 
+  // console.log("findedsssssss",result.rows[0])
+
   if (result?.rows?.length == 0) {
     return res.send({});
   }
@@ -86,7 +88,7 @@ app.get("/getAllUserInfo/:email", async (req, res) => {
 
 app.post("/tasksData", (req, res) => {
   const taskData = req.body;
-  console.log(taskData);
+  // console.log(taskData);
 
   const {
     taskTitle,
@@ -102,14 +104,14 @@ app.post("/tasksData", (req, res) => {
     [taskTitle, priority, deadLine, status, taskDescription, userEmail || null],
     (err, result) => {
       if (err) {
-        console.log("Data didn't store", err);
+        // console.log("Data didn't store", err);
         return res.status(500).json({ msg: err });
       }
       res.send({
         msg: "Data created successfully",
         data: result.rows[0],
       });
-      console.log("hi", result.rows);
+      // console.log("hi", result.rows);
     }
   );
 });
@@ -126,27 +128,64 @@ app.get("/getAllTasks/:email", async (req, res) => {
   res.send(result?.rows);
 });
 
-    app.patch("/updateStatus/:id/:status", async (req, res) => {
-      const id = req.params.id;
-      const status = req.params.status;
+app.patch("/updateStatus/:id/:status", async (req, res) => {
+  const id = parseInt(req.params.id);
 
-      const result =await pool.query("UPDATE tasklist SET status=$1 WHERE id=$2 RETURNING *",[status, id]);
+  const status = req.params.status;
 
-      console.log(result.rows);
-      // const query = {
-      //   _id: new ObjectId(id)
-      // }
+  const result = await pool.query("UPDATE tasklist SET status=$1 WHERE id=$2", [
+    status,
+    id,
+  ]);
 
-      // const updateDoc = {
-      //   $set: {
-      //     status: status
-      //   }
-      // }
-      // const result = await taskCollection.updateOne(query, updateDoc);
-      // res.send(result);
+  // console.log(result);
+  if (result?.rowCount == 0) {
+    return res.send({ msg: "Task not found to update status" });
+  }
+  res.send(result.rows);
+});
+
+app.delete("/taskDelete/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const result = await pool.query("DELETE FROM tasklist WHERE id=$1", [id]);
+  console.log("deletion taskkk", result);
+  if (result?.rowCount == 0) {
+    // console.log("not node");
+    return res.send({ msg: "task deletion failed" });
+  }
+  res.send({ msg: "deleted" });
+});
+
+app.get("/getTaskForUpdate/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  // console.log(id);
+  const result = await pool.query("SELECT * FROM tasklist WHERE id=$1", [id]);
+  console.log("getdefault", result);
+
+  if (result.rows.length == 0) {
+    return res.send({});
+  }
+  res.send(result.rows[0]);
+});
+
+    app.put("/updateTasksData/:id", async (req, res) => {
+      const id = parseInt(req.params.id);
+      const data = req.body;
+      // console.log("update datas list",data);
+      const result = await pool.query(
+        "UPDATE tasklist SET tasktitle = $1,deadline = $2,taskdescription = $3,priority = $4 WHERE id = $5",
+        [data.tasktitle, data.deadline, data.taskdescription, data.priority, id]
+      );
+      // console.log("updated done",result);
+
+      if(result.rowCount == 0){
+        return res.send({msg: "Task Updating Failed"});
+      }
+      res.send({msg: "Done"});
+
+      
     })
-
-
 
 // async function run() {
 //   try {
